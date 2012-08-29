@@ -5,11 +5,12 @@
 accounts=("ruben.caro.estevez@gmail.com") # "ruben@elpulgardelpanda.com")
 
 file_name="check_gmail.sh"
+notify_flag="$HOME/.check_gmail_notified.flag"
 directory=$(cd `dirname $0` && pwd)
 log="$directory/check_gmail.log"
 source $HOME/.Xdbus # dbus info
 
-function check_account {
+function check_account() {
   gmail_login="$1"
   gmail_password=$(python -c "import keyring;print keyring.get_password('""$file_name""', '""$gmail_login""')")
   if [ "None" = "$gmail_password" ]; then
@@ -35,18 +36,22 @@ function check_account {
       msg="$msg($name):$title$sep"
     done
     msg=$(echo $msg | sed 's/"//g')
-    notify-send "$gmail_login ($count)" "\n$msg" -i emblem-mail &>> $log
+    notify-send "$gmail_login ($count)" "\n$msg" -i emblem-ohno &>> $log
     play -q /usr/share/sounds/freedesktop/stereo/dialog-warning.oga reverse repeat repeat repeat vol 5 &>> $log
+    if [ ! -f $notify_flag ]; then
+      touch $notify_flag
+
+      # add handler for tray icon left click
+      function on_click() {
+        firefox --new-tab 'http://mail.google.com'
+      }
+      export -f on_click
+      
+      yad --notification --image=emblem-ohno  --text="$gmail_login ($count)" --command="bash -c on_click" # block until notification is cleaned
+      rm $notify_flag
+    fi
   fi
 }
-
-# check it's not already there
-# other=$(/usr/bin/pgrep -fc "$file_name")
-# echo "[$(date)] other: $other" >> $log
-# [[ $other -gt 2 ]] && {
-#   echo "[$(date)]Already running..." >> $log
-#   exit 0
-# }
 
 for account in "${accounts[@]}"
 do
