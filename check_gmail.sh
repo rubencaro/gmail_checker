@@ -33,6 +33,7 @@ function check_account() {
       summary=$(echo $entry_xml | sed 's/.*<summary>\(.*\)<\/summary>.*/\1/')
       author=$(echo $entry_xml | sed 's/.*<author>.*<email>\(.*\)<\/email>.*<\/author>.*/\1/')
       name=$(echo $entry_xml | sed 's/.*<author>.*<name>\(.*\)<\/name>.*<\/author>.*/\1/')
+      mail_url_params=$(echo $entry_xml | sed 's/.*<link \(.*\) \/>.*/\1/' | sed 's/.*href=".*?\(.*\)" .*/\1/' | sed 's/\&amp;/\&/g')
       msg="$msg($name):$title$sep"
     done
     msg=$(echo $msg | sed 's/"//g')
@@ -43,11 +44,13 @@ function check_account() {
 
       # add handler for tray icon left click
       function on_click() {
-        firefox --new-tab 'http://mail.google.com'
+        url="http://mail.google.com?$1"
+        firefox --new-tab $url
       }
       export -f on_click
-      
-      yad --notification --image=emblem-ohno  --text="$gmail_login ($count)" --command="bash -c on_click" # block until notification is cleaned
+
+      cmd="bash -c \"on_click '$mail_url_params'\""
+      yad --notification --image=emblem-ohno  --text="$gmail_login ($count)" --command="$cmd" # block until notification is cleaned
       rm $notify_flag
     fi
   fi
@@ -59,4 +62,3 @@ do
   check_account $account &>> $log
   sleep 10 # yes, sleep between accounts, let notify do its job
 done
-
