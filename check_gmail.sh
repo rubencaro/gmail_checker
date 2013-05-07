@@ -1,8 +1,11 @@
 #!/bin/bash
 
-#poner en crontab, a conveniencia
+# poner en crontab, a conveniencia
+# * * * * * /bin/bash -l -c /home/user/check_gmail.sh
+# depende de yad, sox, python-keyring, firefox... 
+# necesita info de dbus si se ejecuta desde fuera de X (como en crontab)
 
-accounts=("ruben.caro.estevez@gmail.com") # "ruben@elpulgardelpanda.com")
+accounts=("ruben@elpulgardelpanda.com")
 
 file_name="check_gmail.sh"
 notify_flag="$HOME/.check_gmail_notified.flag"
